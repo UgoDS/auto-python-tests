@@ -4,3 +4,4 @@ ipykernel
 icecream
 python-dotenv
 openai==0.28.0
+isort

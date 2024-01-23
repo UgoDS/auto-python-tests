@@ -3,7 +3,8 @@ def generate_pytest_code(text_input: str):
         {
             "role": "system",
             "content": f"""Write a python using pytest and parametrize for this function:
-            {text_input}""",
+            {text_input}
+            Start the code at @pytest.mark.parametrize skip the import part""",
         },
         {
             "role": "user",
