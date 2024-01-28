@@ -1,8 +1,9 @@
 import os
 import importlib.util
 import inspect
-from icecream import ic
 from data_model.function_model import FunctionInfos
+from loguru import logger
+from utils.text_cleaning import clean_llm_output
 
 
 def find_python_functions(directory, sub_directory=None):
@@ -12,7 +13,7 @@ def find_python_functions(directory, sub_directory=None):
     for root, _, files in os.walk(directory):
         for file in files:
             if file.endswith(".py"):
-                ic(file)
+                logger.info(file)
                 module_name = os.path.splitext(file)[0]
                 module_path = os.path.join(root, file)
                 spec = importlib.util.spec_from_file_location(module_name, module_path)
@@ -28,17 +29,17 @@ def find_python_functions(directory, sub_directory=None):
                             )
                             functions.append(function_)
                 except:
-                    ic(f"{file} contains uninstalled dependencies")
+                    logger.exception(f"{file} contains uninstalled dependencies")
 
     return functions
 
 
-def extract_text_from_function(function: function) -> str:
-    return inspect.getsource(function)
+def extract_text_from_function(function: FunctionInfos) -> str:
+    return inspect.getsource(function.function)
 
 
-def create_test_file(path: str, script_content: str) -> None:
-    with open(path, "w") as f:
+def create_test_file(path: str, script_content: str, mode: str = "w") -> None:
+    with open(path, mode) as f:
         f.write(script_content)
 
 
@@ -82,3 +83,20 @@ def create_test_file_path(
         + "/"
         + test_module_path
     )
+
+
+def append_or_create_test_file(path_test_module, text_clean_content_test):
+    mode = "w"
+    if os.path.exists(path_test_module):
+        mode = "a"
+    create_test_file(path_test_module, text_clean_content_test, mode=mode)
+
+
+def read_clean_close(path_test_module: str) -> None:
+    with open(path_test_module, "r") as f:
+        data = f.read()
+
+    data_cleaned = clean_llm_output(data)
+
+    with open(path_test_module, "w") as f:
+        f.write(data_cleaned)
